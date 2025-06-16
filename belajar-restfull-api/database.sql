@@ -1,0 +1,3 @@
+CREATE DATABASE belajar_spring_restfull_api;
+
+USE belajar_spring_restfull_api;
