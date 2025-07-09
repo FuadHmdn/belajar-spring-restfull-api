@@ -5,17 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.awt.print.Pageable;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class WebResponse<T> {
+public class PagingResponse {
 
-    private T data;
-
-    private String errors;
-
-    private PagingResponse page;
+    private Integer currentPage;
+    private Integer totalPage;
+    private Integer size;
 }
