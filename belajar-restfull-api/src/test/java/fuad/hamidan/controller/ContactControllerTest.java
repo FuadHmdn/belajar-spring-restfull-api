@@ -391,7 +391,7 @@ class ContactControllerTest {
     @Test
     void searchSuccess() throws Exception {
         User user = userRepository.findById("admin").orElse(null);
-        for (int i = 0; i<=50; i++){
+        for (int i = 1; i<=50; i++){
             Contact contact = new Contact();
             contact.setId("22" + i);
             contact.setFirstName("Fuad " + i);
@@ -404,15 +404,15 @@ class ContactControllerTest {
 
         mockMvc.perform(
                 get("/api/contacts")
-                        .param("name", "Fuad")
+                        .param("name", "Fuad 2")
                         .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
                         .header("X-API-TOKEN", "admin")
         ).andExpectAll(
                 status().isOk()
         ).andDo(result -> {
             WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
             assertNotNull(response.getData());
+            log.info("DATA: {}", response.getData());
         });
     }
 }

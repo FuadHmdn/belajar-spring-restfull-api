@@ -64,7 +64,6 @@ public class ContactController {
                                                      @RequestParam(value = "size", required = false, defaultValue = "10")Integer size
     ){
         SearchContactRequest request = new SearchContactRequest(name, email, phone, page, size);
-
         Page<ContactResponse> contactResponse = contactService.search(user, request);
         return WebResponse.<List<ContactResponse>>builder()
                 .data(contactResponse.getContent())

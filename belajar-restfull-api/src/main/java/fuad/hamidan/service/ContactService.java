@@ -8,6 +8,7 @@ import fuad.hamidan.model.SearchContactRequest;
 import fuad.hamidan.model.UpdateContactRequest;
 import fuad.hamidan.repository.ContactRepository;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ContactService {
 
@@ -35,7 +37,7 @@ public class ContactService {
     private ValidationService validationService;
 
     @Transactional
-    public ContactResponse createContact(User user, CreateContactRequest request){
+    public ContactResponse createContact(User user, CreateContactRequest request) {
         validationService.validate(request);
 
         Contact contact = new Contact();
@@ -58,7 +60,7 @@ public class ContactService {
     }
 
     @Transactional(readOnly = true)
-    public ContactResponse get(User user, String contactId){
+    public ContactResponse get(User user, String contactId) {
         Contact contact = contactRepository.findFirstByUserAndId(user, contactId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -73,7 +75,7 @@ public class ContactService {
     }
 
     @Transactional
-    public ContactResponse update(User user, UpdateContactRequest request, String contactId){
+    public ContactResponse update(User user, UpdateContactRequest request, String contactId) {
         validationService.validate(request);
 
         Contact contact = contactRepository.findFirstByUserAndId(user, contactId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found"));
@@ -93,27 +95,29 @@ public class ContactService {
     }
 
     @Transactional
-    public void delete(User user, String idContact){
+    public void delete(User user, String idContact) {
         Contact contact = contactRepository.findFirstByUserAndId(user, idContact).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found"));
         contactRepository.delete(contact);
     }
 
     @Transactional(readOnly = true)
-    public Page<ContactResponse> search(User user, SearchContactRequest request){
+    public Page<ContactResponse> search(User user, SearchContactRequest request) {
         Specification<Contact> specification = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(builder.equal(root.get("user"), user));
-            if (Objects.nonNull(request.getName())){
-                predicates.add(builder.like(root.get("firstName"), "%"+ request.getName() +"%"));
-                predicates.add(builder.like(root.get("lastName"), "%"+ request.getName() +"%"));
+            if (Objects.nonNull(request.getName())) {
+                predicates.add(builder.or(
+                        builder.like(root.get("firstName"), "%" + request.getName() + "%"),
+                        builder.like(root.get("lastName"), "%" + request.getName() + "%")
+                ));
             }
 
-            if (Objects.nonNull(request.getEmail())){
-                predicates.add(builder.like(root.get("email"), "%"+ request.getEmail() +"%"));
+            if (Objects.nonNull(request.getEmail())) {
+                predicates.add(builder.like(root.get("email"), "%" + request.getEmail() + "%"));
             }
 
-            if (Objects.nonNull(request.getPhone())){
-                predicates.add(builder.like(root.get("phone"), "%"+ request.getPhone() +"%"));
+            if (Objects.nonNull(request.getPhone())) {
+                predicates.add(builder.like(root.get("phone"), "%" + request.getPhone() + "%"));
             }
 
             return query.where(predicates.toArray(new Predicate[]{})).getRestriction();
@@ -124,6 +128,7 @@ public class ContactService {
         List<ContactResponse> contactResponses = contacts.getContent().stream()
                 .map(this::toContactResponse)
                 .toList();
+        log.info("DATA : {}", contactResponses);
         return new PageImpl<>(contactResponses, pageable, contacts.getTotalElements());
     }
 
